@@ -1,8 +1,11 @@
 import csv
 import numpy as np
 import bisect as b
+import random
 
 ## This file is the main neural network simulation script
+## Refractory period will be 5, delta time added on firing will be 3, duration of signal will be 10
+## Queue entries are (simulation time, eventID, target neuron, signal)
 
 ## Neuron base class
 
@@ -11,43 +14,43 @@ class Neuron:
         self.refractory = False
         self.inputsum = 0
 
-## Refractory period will be 5, delta time added on firing will be 3, duration of signal will be 10
-
 ## Main simulation class
 
 class Simulator:
     def __init__(self, numneurons):
+        self.numberofneurons = numneurons
         self.neuralnet = np.zeros((numneurons, numneurons), dtype = int)
         self.clock = 0
-        self.neuronarray = []
-        self.queue = sorted()       ## (simulation time, eventID, target neuron, signal)
+        self.neuronarray = [Neuron() for i in range(numneurons)]
+        self.queue = []
+        self.simlog = open('simulationevents.txt', 'w')
     def fireneuron(self, numneurons, neuronindex):
-#        for i in range(numneurons):
         for i in range(numneurons):
             if self.neuralnet[neuronindex][i] != 0:
-                b.insort_left(queue, (clock + 3, 1, i, self.neuralnet[neuronindex][i]))
-                b.insort_left(queue, (clock + 3 + 10, 2, i, self.neuralnet[neuronindex][i]))
-        simlog = simulationevents.txt
-        simlog.write(neuronindex)
-        simlog.write('\n')
+                b.insort_right(self.queue, (self.clock + 3, 1, i, self.neuralnet[neuronindex][i]))
+                b.insort_right(self.queue, (self.clock + 3 + 10, 2, i, self.neuralnet[neuronindex][i]))
+        self.simlog.write('%i' % (neuronindex))
+        self.simlog.write(', at simulation time ')
+        self.simlog.write('%i' % (self.clock))
+        self.simlog.write('\n')
         self.neuronarray[neuronindex].refractory = True
         self.neuronarray[neuronindex].inputsum = 0
-        b.insort_left(queue, (clock + 5, 3, neuronindex, 0))
+        b.insort_right(self.queue, (self.clock + 5, 3, neuronindex, 0))
     def startsignal(self, neuronindex, signal):
-        n = Neuron(self.neuronarray[neuronindex])
+        n = self.neuronarray[neuronindex]
         n.inputsum = n.inputsum + signal
-        if (n.refractory = False and n,inputsum > 0):
-            fireneuron(neuronindex)
+        if (n.refractory == False and n.inputsum > 0):
+            self.fireneuron(self.numberofneurons, neuronindex)
     def endsignal(self, neuronindex, signal):
-        n = Neuron(self.neuronarray[neuronindex])
+        n = self.neuronarray[neuronindex]
         n.inputsum = n.inputsum - signal
-        if (n.inrefractory = False and inputsum > 0):
-            fireneuron(neuronindex)
+        if (n.refractory == False and n.inputsum > 0):
+            self.fireneuron(self.numberofneurons, neuronindex)
     def exitrefractory(self, neuronindex):
-        n = Neuron(self.neuronarray[neuronindex])
+        n = self.neuronarray[neuronindex]
         n.refractory = False
         if n.inputsum > 0:
-            fireneuron(neuronindex)
+            self.fireneuron(self.numberofneurons, neuronindex)
 
 ## Read the output file from the csvreader script, and create dictionaries for looking up index values and neuron types
 
@@ -68,13 +71,11 @@ with open('n_output.csv', 'rb') as neuronfile:
 
 print 'Done'
 
-## Generate an array of zeroes, with its dimensions being determined by the number of neurons
-
 print 'Generating neural network...'
 
-sim = Simulator(matrix_size)
+## Create an instance of the Simulator class
 
-#neuralnet = np.zeros((matrix_size, matrix_size), dtype = int)
+sim = Simulator(matrix_size)
 
 ## Plug in connection data, using the index and type dictionaries and connectome.csv
 
@@ -88,3 +89,53 @@ with open('connectome.csv', 'rb') as connectomefile:
         sim.neuralnet[presynapticindex, postsynapticindex] = typesdict.get(presynapticindex)
 
 print 'Done'
+
+## To do: Prompt the user for max simulation duration and how many neurons to fire initially
+## Current code should do this in theory, but Atom doesn't accept user input. Running in N++ or IDLE should allow uncommenting these input lines
+
+#maxcount = int(input('Enter maximum simulation cycles: '))
+
+maxcount = 100
+
+print 'Maximum sim cycles set to ' + str(maxcount)
+
+#initialneurons = int(input('How many neurons do you want to fire at simulation start? '))
+
+initialneurons = 5
+
+sim.simlog.write('Max sim cycles set to ')
+sim.simlog.write('%i' % (maxcount))
+sim.simlog.write('\n')
+sim.simlog.write('Initializing by firing ')
+sim.simlog.write('%i' % (initialneurons))
+sim.simlog.write(' neurons')
+sim.simlog.write('\n')
+
+## Populate the queue with an initial set of randomized firing events, set the cycle counter to 0, and begin running the simulation
+
+for i in range(initialneurons):
+    sim.fireneuron(matrix_size, random.randrange(matrix_size))
+
+count = 0
+
+print 'Beginning simulation by firing ' + str(initialneurons) + ' neurons'
+
+## Simulation will stop running when we have either reached the user-specified maximum number of cycles or there are no more events in the queue
+
+while (count < maxcount and len(sim.queue) > 0):
+    count += 1
+    currentevent = sim.queue.pop(0)
+    sim.clock = currentevent[0]
+    if currentevent[1] == 1:
+        sim.startsignal(currentevent[2], currentevent[3])
+    elif currentevent[1] == 2:
+        sim.endsignal(currentevent[2], currentevent[3])
+    elif currentevent[1] == 3:
+        sim.exitrefractory(currentevent[2])
+    else:
+        print 'Something has gone wrong during simulation'
+        sim.simlog.close()
+
+sim.simlog.close()
+
+print 'Simulation has finished running. Please see output file simulationevents.txt for a log of which neurons fired'

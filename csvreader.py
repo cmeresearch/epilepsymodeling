@@ -30,7 +30,3 @@ with open('n_output.csv', 'w') as nameswritefile:
 print 'Done'
 
 ## To do: Prompt user for i/e ratio or seed, which can then be appended to the filename, potentially along with time and date
-
-## Below are code snippets that may be useful for future implementation of reading neuron types from the original connectome.csv
-
-#typesreadfile = np.genfromtxt(connectomefile, dtype = None, delimiter = ';', usecols = (0, 4))
