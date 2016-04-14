@@ -20,7 +20,7 @@ class Neuron:
 class Simulator:
     def __init__(self, numneurons):
         self.numberofneurons = numneurons
-        self.timestamp = datetime.now().strftime('%m-%d-%Y - %H-%M-%S')
+        self.timestamp = datetime.now().strftime('%m-%d-%Y - %H.%M.%S')
         self.neuralnet = np.zeros((numneurons, numneurons), dtype = int)
         self.clock = 0
         self.neuronarray = [Neuron() for i in range(numneurons)]
@@ -97,13 +97,13 @@ print 'Done'
 
 #maxcount = int(input('Enter maximum simulation cycles: '))
 
-maxcount = 100
+maxcount = 1000000
 
 print 'Maximum sim cycles set to ' + str(maxcount)
 
 #initialneurons = int(input('How many neurons do you want to fire at simulation start? '))
 
-initialneurons = 5
+initialneurons = 10
 
 sim.simlog.write('Max sim cycles set to ')
 sim.simlog.write('%i' % (maxcount))
@@ -138,6 +138,14 @@ while (count < maxcount and len(sim.queue) > 0):
         print 'Something has gone wrong during simulation'
         sim.simlog.close()
 
+if count >= maxcount:
+    sim.simlog.write('Simulation terminated because maximum number of cycles was reached')
+    print 'Maximum number of cycles reached'
+
+if len(sim.queue) == 0:
+    sim.simlog.write('Simulation terminated because the simulation queue was empty')
+    print 'No more events left in the simulation queue'
+
 sim.simlog.close()
 
-print 'Simulation has finished running. Please see output file simulationevents.txt for a log of which neurons fired'
+print 'Simulation has finished running. Please see the simulationevents output text file for a log of which neurons fired'
