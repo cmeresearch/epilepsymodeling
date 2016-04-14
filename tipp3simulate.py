@@ -2,6 +2,7 @@ import csv
 import numpy as np
 import bisect as b
 import random
+from datetime import datetime
 
 ## This file is the main neural network simulation script
 ## Refractory period will be 5, delta time added on firing will be 3, duration of signal will be 10
@@ -19,11 +20,12 @@ class Neuron:
 class Simulator:
     def __init__(self, numneurons):
         self.numberofneurons = numneurons
+        self.timestamp = datetime.now().strftime('%m-%d-%Y - %H-%M-%S')
         self.neuralnet = np.zeros((numneurons, numneurons), dtype = int)
         self.clock = 0
         self.neuronarray = [Neuron() for i in range(numneurons)]
         self.queue = []
-        self.simlog = open('simulationevents.txt', 'w')
+        self.simlog = open('simulationevents ' + self.timestamp + '.txt', 'w')
     def fireneuron(self, numneurons, neuronindex):
         for i in range(numneurons):
             if self.neuralnet[neuronindex][i] != 0:
