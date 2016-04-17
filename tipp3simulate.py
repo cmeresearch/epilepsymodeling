@@ -2,6 +2,8 @@ import csv
 import numpy as np
 import bisect as b
 import random
+import networkx as nx
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 ## This file is the main neural network simulation script
@@ -90,6 +92,13 @@ with open('connectome.csv', 'rb') as connectomefile:
         postsynapticindex = indexdict.get(postsynaptic)
         sim.neuralnet[presynapticindex, postsynapticindex] = typesdict.get(presynapticindex)
 
+np.savetxt('neuralnet.csv', sim.neuralnet, fmt = '%+1d', delimiter = ', ', newline = '\n')
+
+neurongraph = nx.from_numpy_matrix(sim.neuralnet)
+pos = nx.random_layout(neurongraph)
+nx.draw(neurongraph, pos, with_labels = True, node_size = 100, node_color = 'blue', width = 0.1, font_size = 6)
+plt.savefig('neurongraph.png', dpi = 200)
+
 print 'Done'
 
 ## To do: Prompt the user for max simulation duration and how many neurons to fire initially
@@ -144,6 +153,9 @@ if count >= maxcount:
 
 if len(sim.queue) == 0:
     sim.simlog.write('Simulation terminated because the simulation queue was empty')
+    sim.simlog.write('\n')
+    sim.simlog.write('Number of cycles run: ')
+    sim.simlog.write('%i' % (count))
     print 'No more events left in the simulation queue'
 
 sim.simlog.close()

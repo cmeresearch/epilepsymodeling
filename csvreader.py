@@ -12,7 +12,7 @@ with open('connectome.csv', 'rb') as connectomefile:
 
 	print 'Done'
 
-## Find all unique neuron names in that array, assign numerical values to them, assign random types (excitatory or inhibitory) to them, then save them to a file called n_output.csv. Currently randomizes equally between excitatory and inhibitory
+## Find all unique neuron names in that array, assign numerical values to them, assign random types (excitatory or inhibitory) to them, then save them to a file called n_output.csv. Initially was randomized equally between excitatory and inhibitory, now experimenting with other ratios
 
 neuron_names = np.unique(namesreadfile)
 

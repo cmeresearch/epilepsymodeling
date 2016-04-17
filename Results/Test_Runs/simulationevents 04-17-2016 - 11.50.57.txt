@@ -1,0 +1,5 @@
+Max sim cycles set to 1000000
+Initializing by firing 1 neurons
+199, at simulation time 0
+Simulation terminated because the simulation queue was empty
+Number of cycles run: 7
